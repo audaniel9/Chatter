@@ -8,10 +8,17 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="FirebaseLoginTheme" parent="FirebaseUI">
+    <style name="FirebaseLoginTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowBackground">@drawable/login_background</item>
+        <item name="android:windowTransitionBackgroundFadeDuration">4</item>
+    </style>
 
+    <style name="AppTheme.Launcher">
+        <item name="android:windowBackground">@drawable/launch_screen</item>
     </style>
 
 </resources>

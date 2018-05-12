@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -112,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
                                 new AuthUI.IdpConfig.PhoneBuilder().build(),
                                 new AuthUI.IdpConfig.GoogleBuilder().build()))
                         .setTheme(R.style.FirebaseLoginTheme)
-                        .setLogo(R.mipmap.ic_launcher)
+                        .setLogo(R.drawable.logo_placeholder)
                         .build()
                 ,SIGN_IN_REQUEST_CODE);
     }
