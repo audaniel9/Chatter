@@ -16,6 +16,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.ErrorCodes;
+import com.firebase.ui.auth.IdpResponse;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -24,6 +26,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -40,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     Snackbar.make(activity_main,"You are now signed out",Snackbar.LENGTH_SHORT).show();
-                    finish();
+                    startSignIn();
                 }
             });
         }
@@ -56,10 +59,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        IdpResponse response = IdpResponse.fromResultIntent(data);
         if(requestCode == SIGN_IN_REQUEST_CODE) {
             if(resultCode == RESULT_OK) {
                 Snackbar.make(activity_main,"You are now signed in.", Snackbar.LENGTH_SHORT).show();
                 displayMessageActivity();
+            }
+            else if(response.getError().getErrorCode() == ErrorCodes.NO_NETWORK) {
+                Snackbar.make(activity_main,"No internet connection",Snackbar.LENGTH_SHORT).show();
             }
             else {
                 Snackbar.make(activity_main, "There was an error signing in. Please try again.", Snackbar.LENGTH_SHORT).show();
@@ -76,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
         activity_main = (RelativeLayout) findViewById(R.id.activity_main);
         fabSend = (FloatingActionButton) findViewById(R.id.fabSend);
 
-        // Display message text
         fabSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -88,13 +94,27 @@ public class MainActivity extends AppCompatActivity {
 
         //Check if a user is signed in and launch sign in page if none
         if(FirebaseAuth.getInstance().getCurrentUser() == null) {
-            startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(),SIGN_IN_REQUEST_CODE);
+            startSignIn();
         }
         else {
             Snackbar.make(activity_main,"Welcome " + FirebaseAuth.getInstance().getCurrentUser().getEmail(),Snackbar.LENGTH_SHORT).show();
             //Load content
             displayMessageActivity();
         }
+    }
+
+    private void startSignIn() {
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(Arrays.asList(
+                                new AuthUI.IdpConfig.EmailBuilder().build(),
+                                new AuthUI.IdpConfig.PhoneBuilder().build(),
+                                new AuthUI.IdpConfig.GoogleBuilder().build()))
+                        .setTheme(R.style.FirebaseLoginTheme)
+                        .setLogo(R.mipmap.ic_launcher)
+                        .build()
+                ,SIGN_IN_REQUEST_CODE);
     }
 
     private void displayMessageActivity() {

@@ -8,4 +8,10 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="FirebaseLoginTheme" parent="FirebaseUI">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@drawable/login_background</item>
+
+    </style>
+
 </resources>
