@@ -1,5 +1,6 @@
 package com.daniel.chat.chatter;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,6 +19,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
+
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
@@ -69,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         if(item.getItemId() == R.id.menuRefresh) {
             AlertDialog.Builder alertRefresh = new AlertDialog.Builder(this);
             alertRefresh.setTitle("Refresh Messages");
-            alertRefresh.setMessage("All messages will be deleted. Do you want to continue?");
+            alertRefresh.setMessage("All messages will be deleted. Do you want to continue?" + "\n\n(This will crash the app, but it works)");
             alertRefresh.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog,int which) {
@@ -118,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
+        getSupportActionBar().setTitle("Chat");
         setContentView(R.layout.activity_main);
 
         activity_main = (RelativeLayout) findViewById(R.id.activity_main);

@@ -6,10 +6,9 @@
     android:layout_height="match_parent"
     tools:context=".ConvoListActivity">
 
-    <Button
-        android:id="@+id/convo1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Go to Convo 1"/>
+    <android.support.v7.widget.RecyclerView
+        >
+
+    </android.support.v7.widget.RecyclerView>
 
 </RelativeLayout>

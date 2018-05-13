@@ -40,9 +40,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_above="@+id/fabSend"
-        android:layout_marginBottom="16dp"
-        android:dividerHeight="24dp"
-        android:divider="@color/fui_transparent">
+        android:layout_marginBottom="16dp">
     </android.support.v7.widget.RecyclerView>
 
 </RelativeLayout>

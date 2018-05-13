@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Chatter</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="refresh_dialog">All messages will be deleted. Do you want to continue?\n\n(This will crash the app, but it works)</string>
     <string name="about_info">
         May 2018\nProject and design by Daniel Au\n\nSource: github.com/audaniel9/Chatter
     </string>
