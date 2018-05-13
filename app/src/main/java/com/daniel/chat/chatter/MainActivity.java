@@ -1,7 +1,6 @@
 package com.daniel.chat.chatter;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -9,20 +8,21 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
-
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
-import com.firebase.ui.database.FirebaseListAdapter;
-import com.firebase.ui.database.FirebaseListOptions;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -34,10 +34,12 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity {
 
     private static int SIGN_IN_REQUEST_CODE = 1;
-    private FirebaseListAdapter<MessageActivity> adapter;
+    private FirebaseRecyclerAdapter adapter;
     RelativeLayout activity_main;
     FloatingActionButton fabSend;
+    RecyclerView messageList;
 
+    // Selected menu item
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.menuAbout) {
@@ -100,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode == SIGN_IN_REQUEST_CODE) {
             if(resultCode == RESULT_OK) {
                 Snackbar.make(activity_main,"You are now signed in.", Snackbar.LENGTH_SHORT).show();
-                displayMessageActivity();
+                displayMessage();
             }
             else if(response.getError().getErrorCode() == ErrorCodes.NO_NETWORK) {
                 Snackbar.make(activity_main,"No internet connection",Snackbar.LENGTH_SHORT).show();
@@ -125,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 EditText input = (EditText) findViewById(R.id.input);
-                FirebaseDatabase.getInstance().getReference().push().setValue(new MessageActivity(input.getText().toString(),FirebaseAuth.getInstance().getCurrentUser().getEmail()));
+                FirebaseDatabase.getInstance().getReference().push().setValue(new Messages(input.getText().toString(),FirebaseAuth.getInstance().getCurrentUser().getEmail()));
                 input.setText("");
             }
         });
@@ -137,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
         else {
             Snackbar.make(activity_main,"Welcome " + FirebaseAuth.getInstance().getCurrentUser().getEmail(),Snackbar.LENGTH_SHORT).show();
             //Load content
-            displayMessageActivity();
+            displayMessage();
         }
     }
 
@@ -155,33 +157,33 @@ public class MainActivity extends AppCompatActivity {
                 ,SIGN_IN_REQUEST_CODE);
     }
 
-    private void displayMessageActivity() {
-        ListView messageList = (ListView) findViewById(R.id.messageList);
+    private void displayMessage() {
+        messageList = (RecyclerView) findViewById(R.id.messageList);
         Query query = FirebaseDatabase.getInstance()
                 .getReference();
 
-        FirebaseListOptions<MessageActivity> options =
-                new FirebaseListOptions.Builder<MessageActivity>()
-                        .setLayout(R.layout.message_item)
-                        .setQuery(query,MessageActivity.class)
+        FirebaseRecyclerOptions<Messages> options =
+                new FirebaseRecyclerOptions.Builder<Messages>()
+                        .setQuery(query,Messages.class)
                         .setLifecycleOwner(this)
                         .build();
 
-        adapter = new FirebaseListAdapter<MessageActivity>(options) {
+        adapter = new FirebaseRecyclerAdapter<Messages,MessagesViewHolder>(options) {
             @Override
-            protected void populateView(View v, MessageActivity model, int position) {
-                //Get references to views
-                TextView message,user,time;
-                message = (TextView) v.findViewById(R.id.message_text);
-                user = (TextView) v.findViewById(R.id.message_user);
-                time = (TextView) v.findViewById(R.id.message_time);
+            public MessagesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.message_item,parent,false);
 
-                message.setText(model.getMessage());
-                user.setText(model.getUser());
-                time.setText(DateFormat.format("MM/dd/yy hh:mm aa",model.getTime()));
+                return new MessagesViewHolder(view);
+            }
+
+            @Override
+            protected void onBindViewHolder(MessagesViewHolder holder,int position,Messages model) {
+                holder.message.setText(model.getMessage());
+                holder.user.setText(model.getUser());
+                holder.time.setText(DateFormat.format("MM/dd/yy hh:mm aa",model.getTime()));
             }
         };
-
         messageList.setAdapter(adapter);
+        messageList.setLayoutManager(new LinearLayoutManager(this));
     }
 }

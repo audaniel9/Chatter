@@ -2,18 +2,18 @@ package com.daniel.chat.chatter;
 
 import java.util.Date;
 
-public class MessageActivity {
+public class Messages {
     private String message;
     private String user;
     private long time;
 
-    public MessageActivity(String message, String user) {
+    public Messages(String message, String user) {
         this.message = message;
         this.user = user;
         time = new Date().getTime();
     }
 
-    public MessageActivity() {
+    public Messages() {
     }
 
     public String getMessage() {

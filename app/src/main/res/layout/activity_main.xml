@@ -5,7 +5,6 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
     tools:context=".MainActivity">
 
     <android.support.design.widget.FloatingActionButton
@@ -34,7 +33,7 @@
             android:hint="Message..."/>
     </android.support.design.widget.TextInputLayout>
     
-    <ListView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/messageList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -44,6 +43,6 @@
         android:layout_marginBottom="16dp"
         android:dividerHeight="24dp"
         android:divider="@color/fui_transparent">
-    </ListView>
+    </android.support.v7.widget.RecyclerView>
 
 </RelativeLayout>
