@@ -1,5 +1,8 @@
 package com.daniel.chat.chatter;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -27,7 +30,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,6 +49,27 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        if(item.getItemId() == R.id.menuRefresh) {
+            AlertDialog.Builder alertRefresh = new AlertDialog.Builder(MainActivity.this);
+            alertRefresh.setTitle("Refresh Messages");
+            alertRefresh.setMessage("All messages will be deleted. Do you want to continue?");
+            alertRefresh.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog,int which) {
+                    FirebaseDatabase.getInstance().getReference().removeValue();
+                    finish();
+                }
+            });
+            alertRefresh.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            alertRefresh.show();
+        }
+
         return true;
     }
 
@@ -120,20 +143,28 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayMessageActivity() {
         ListView messageList = (ListView) findViewById(R.id.messageList);
-        Query query = FirebaseDatabase.getInstance().getReference().child("chats");
-        FirebaseListOptions<MessageActivity> options = new FirebaseListOptions.Builder<MessageActivity>().setQuery(query,MessageActivity.class).setLayout(R.layout.message_item).build();
+        Query query = FirebaseDatabase.getInstance()
+                .getReference();
+
+        FirebaseListOptions<MessageActivity> options =
+                new FirebaseListOptions.Builder<MessageActivity>()
+                        .setLayout(R.layout.message_item)
+                        .setQuery(query,MessageActivity.class)
+                        .setLifecycleOwner(this)
+                        .build();
+
         adapter = new FirebaseListAdapter<MessageActivity>(options) {
             @Override
             protected void populateView(View v, MessageActivity model, int position) {
                 //Get references to views
                 TextView message,user,time;
-                message = (TextView) v.findViewById(R.id.messageText);
-                user = (TextView) v.findViewById(R.id.user);
-                time = (TextView) v.findViewById(R.id.messageTime);
+                message = (TextView) v.findViewById(R.id.message_text);
+                user = (TextView) v.findViewById(R.id.message_user);
+                time = (TextView) v.findViewById(R.id.message_time);
 
                 message.setText(model.getMessage());
                 user.setText(model.getUser());
-                time.setText(DateFormat.format("mm/dd/yy AT hh:mm",model.getTime()));
+                time.setText(DateFormat.format("MM/dd/yy hh:mm aa",model.getTime()));
             }
         };
 

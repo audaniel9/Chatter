@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item android:icon="@drawable/ic_action_refresh" app:showAsAction="always"
-        android:id="@+id/menuSearch">
+        android:id="@+id/menuRefresh">
     </item>
 
     <item android:icon="@drawable/ic_action_search" app:showAsAction="always"
-        android:id="@+id/menuRefresh"/>
+        android:id="@+id/menuSearch"/>
 
     <item android:title="Settings" app:showAsAction="never"
         android:id="@+id/menuSettings"></item>

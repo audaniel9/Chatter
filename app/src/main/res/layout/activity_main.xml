@@ -42,7 +42,8 @@
         android:layout_alignParentStart="true"
         android:layout_above="@+id/fabSend"
         android:layout_marginBottom="16dp"
-        android:dividerHeight="10dp">
+        android:dividerHeight="24dp"
+        android:divider="@color/fui_transparent">
     </ListView>
 
 </RelativeLayout>

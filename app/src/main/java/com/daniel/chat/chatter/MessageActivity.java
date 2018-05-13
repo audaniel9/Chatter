@@ -10,7 +10,6 @@ public class MessageActivity {
     public MessageActivity(String message, String user) {
         this.message = message;
         this.user = user;
-
         time = new Date().getTime();
     }
 
