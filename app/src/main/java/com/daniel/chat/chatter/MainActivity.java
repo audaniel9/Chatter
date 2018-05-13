@@ -40,6 +40,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.menuAbout) {
+            View aboutView = getLayoutInflater().inflate(R.layout.menu_about,null,false);
+            AlertDialog.Builder alertAbout = new AlertDialog.Builder(this);
+            alertAbout.setTitle("About");
+            alertAbout.setView(aboutView);
+            alertAbout.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            alertAbout.show();
+        }
+
         if(item.getItemId() == R.id.menuSignOut) {
             AuthUI.getInstance().signOut(this).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
@@ -51,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(item.getItemId() == R.id.menuRefresh) {
-            AlertDialog.Builder alertRefresh = new AlertDialog.Builder(MainActivity.this);
+            AlertDialog.Builder alertRefresh = new AlertDialog.Builder(this);
             alertRefresh.setTitle("Refresh Messages");
             alertRefresh.setMessage("All messages will be deleted. Do you want to continue?");
             alertRefresh.setPositiveButton("Yes",new DialogInterface.OnClickListener() {

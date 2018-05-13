@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Chatter</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="about_info">
+        May 2018\nProject and design by Daniel Au\n\nSource: github.com/audaniel9/Chatter
+    </string>
 </resources>
