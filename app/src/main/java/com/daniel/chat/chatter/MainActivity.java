@@ -138,8 +138,6 @@ public class MainActivity extends AppCompatActivity {
             startSignIn();
         }
         else {
-            Snackbar.make(activity_main,"Welcome " + FirebaseAuth.getInstance().getCurrentUser().getEmail(),Snackbar.LENGTH_SHORT).show();
-            //Load content
             displayMessage();
         }
     }
