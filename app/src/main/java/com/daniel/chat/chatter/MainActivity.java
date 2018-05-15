@@ -16,7 +16,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
@@ -26,15 +28,15 @@ import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static int SIGN_IN_REQUEST_CODE = 1;
-    private FirebaseRecyclerAdapter adapter;
+    private FirebaseAuth auth;
+    private FirebaseAuth.AuthStateListener authListener;
     RelativeLayout activity_main;
     FloatingActionButton fabSend;
     RecyclerView messageList;
@@ -57,13 +59,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(item.getItemId() == R.id.menuSignOut) {
-            AuthUI.getInstance().signOut(this).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    Snackbar.make(activity_main,"You are now signed out",Snackbar.LENGTH_SHORT).show();
-                    startSignIn();
-                }
-            });
+            auth.signOut();
+            startActivity(new Intent(MainActivity.this,LoginActivity.class));
+            finish();
         }
 
         if(item.getItemId() == R.id.menuRefresh) {
@@ -96,30 +94,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        IdpResponse response = IdpResponse.fromResultIntent(data);
-        if(requestCode == SIGN_IN_REQUEST_CODE) {
-            if(resultCode == RESULT_OK) {
-                Snackbar.make(activity_main,"You are now signed in.", Snackbar.LENGTH_SHORT).show();
-                displayMessage();
-            }
-            else if(response.getError().getErrorCode() == ErrorCodes.NO_NETWORK) {
-                Snackbar.make(activity_main,"No internet connection",Snackbar.LENGTH_SHORT).show();
-            }
-            else {
-                Snackbar.make(activity_main, "There was an error signing in. Please try again.", Snackbar.LENGTH_SHORT).show();
-                finish();
-            }
-        }
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         getSupportActionBar().setTitle("Chat");
         setContentView(R.layout.activity_main);
+
+        auth = FirebaseAuth.getInstance();
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        authListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if(user == null) {
+                    startActivity(new Intent(MainActivity.this,LoginActivity.class));
+                    finish();
+                }
+            }
+        };
 
         activity_main = (RelativeLayout) findViewById(R.id.activity_main);
         fabSend = (FloatingActionButton) findViewById(R.id.fabSend);
@@ -133,30 +126,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //Check if a user is signed in and launch sign in page if none
-        if(FirebaseAuth.getInstance().getCurrentUser() == null) {
-            startSignIn();
-        }
-        else {
-            displayMessage();
-        }
-    }
-
-    private void startSignIn() {
-        startActivityForResult(
-                AuthUI.getInstance()
-                        .createSignInIntentBuilder()
-                        .setAvailableProviders(Arrays.asList(
-                                new AuthUI.IdpConfig.EmailBuilder().build(),
-                                new AuthUI.IdpConfig.PhoneBuilder().build(),
-                                new AuthUI.IdpConfig.GoogleBuilder().build()))
-                        .setTheme(R.style.FirebaseLoginTheme)
-                        .setLogo(R.drawable.logo_placeholder)
-                        .build()
-                ,SIGN_IN_REQUEST_CODE);
+        displayMessage();
     }
 
     private void displayMessage() {
+        FirebaseRecyclerAdapter adapter;
+
         messageList = (RecyclerView) findViewById(R.id.messageList);
         Query query = FirebaseDatabase.getInstance().getReference();
 
