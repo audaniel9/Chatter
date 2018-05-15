@@ -1,6 +1,5 @@
 package com.daniel.chat.chatter;
 
-import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,8 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
-
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
@@ -163,8 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayMessage() {
         messageList = (RecyclerView) findViewById(R.id.messageList);
-        Query query = FirebaseDatabase.getInstance()
-                .getReference();
+        Query query = FirebaseDatabase.getInstance().getReference();
 
         FirebaseRecyclerOptions<Messages> options =
                 new FirebaseRecyclerOptions.Builder<Messages>()
@@ -188,6 +184,8 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         messageList.setAdapter(adapter);
-        messageList.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutmanager = new LinearLayoutManager(this);
+        layoutmanager.setStackFromEnd(true);
+        messageList.setLayoutManager(layoutmanager);
     }
 }

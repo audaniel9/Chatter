@@ -3,4 +3,6 @@
     <color name="colorPrimary">#E5931E</color>
     <color name="colorPrimaryDark">#8F5400</color>
     <color name="colorAccent">#E5931E</color>
+    <color name="colorChatBubble">#e5601e</color>
+    <color name="colorComplement">#1e9fe5</color>
 </resources>
