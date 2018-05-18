@@ -23,7 +23,9 @@
         </activity>
         <activity android:name=".SignUpActivity" />
         <activity android:name=".ConvoListActivity" />
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateAlwaysHidden"/>
     </application>
 
 </manifest>
