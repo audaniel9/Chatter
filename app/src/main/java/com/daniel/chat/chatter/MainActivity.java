@@ -24,9 +24,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,13 +35,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-    private FirebaseAuth auth;
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
     private FirebaseAuth.AuthStateListener authListener;
-    private NavigationView navigationView;
-    private DrawerLayout drawer;
-    private View navHeader;
-    private TextView name;
-    private ImageView navHeaderbg;
+    final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     RelativeLayout activity_main;
     FloatingActionButton fabSend;
     RecyclerView messageList;
@@ -72,12 +68,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(item.getItemId() == R.id.menuRefresh) {
             AlertDialog.Builder alertRefresh = new AlertDialog.Builder(this);
             alertRefresh.setTitle("Refresh Messages");
-            alertRefresh.setMessage("All messages will be deleted. Do you want to continue?" + "\n\n(This will crash the app, but it works)");
+            alertRefresh.setMessage("All messages will be deleted. Do you want to continue?");
             alertRefresh.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog,int which) {
                     FirebaseDatabase.getInstance().getReference().removeValue();
-                    finish();
                 }
             });
             alertRefresh.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -95,25 +90,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
+
         return true;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //getSupportActionBar().setTitle("Chat");
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Chat");
         setSupportActionBar(toolbar);
-
-        auth = FirebaseAuth.getInstance();
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         authListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
                 if(user == null) {
                     startActivity(new Intent(MainActivity.this,LoginActivity.class));
                     finish();
@@ -128,7 +120,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onClick(View view) {
                 EditText input = (EditText) findViewById(R.id.input);
-                FirebaseDatabase.getInstance().getReference().push().setValue(new Messages(input.getText().toString(),FirebaseAuth.getInstance().getCurrentUser().getEmail()));
+
+                FirebaseDatabase.getInstance().getReference("Messages").push().setValue(new Messages(input.getText().toString(),user.getDisplayName()));
                 input.setText("");
             }
         });
@@ -141,6 +134,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_bar_view);
+
+        View navHeader = navigationView.getHeaderView(0);
+        TextView drawerHeaderName = (TextView) navHeader.findViewById(R.id.drawer_header_name);
+        drawerHeaderName.setText(user.getDisplayName());
+
         navigationView.setNavigationItemSelectedListener(this);
     }
 
@@ -162,23 +160,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(id == R.id.profile) {
             fragment = new ProfileFragment();
         }
-        else if (fragment != null) {
-            FragmentManager fragmentManger = getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManger.beginTransaction();
+        if (fragment != null) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.frame, fragment);
+            fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
+        invalidateOptionsMenu();
         return true;
     }
 
     private void displayMessage() {
-        FirebaseRecyclerAdapter adapter;
+        final FirebaseRecyclerAdapter adapter;
 
         messageList = (RecyclerView) findViewById(R.id.messageList);
-        Query query = FirebaseDatabase.getInstance().getReference();
+        Query query = FirebaseDatabase.getInstance().getReference().child("Messages");
 
         FirebaseRecyclerOptions<Messages> options =
                 new FirebaseRecyclerOptions.Builder<Messages>()
@@ -197,13 +197,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             protected void onBindViewHolder(MessagesViewHolder holder,int position,Messages model) {
                 holder.message.setText(model.getMessage());
-                holder.user.setText(model.getUser());
+                holder.username.setText(model.getUser());
                 holder.time.setText(DateFormat.format("MM/dd/yy hh:mm aa",model.getTime()));
             }
         };
         messageList.setAdapter(adapter);
-        LinearLayoutManager layoutmanager = new LinearLayoutManager(this);
-        layoutmanager.setStackFromEnd(true);
-        messageList.setLayoutManager(layoutmanager);
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        messageList.setLayoutManager(layoutManager);
+
+        // Auto scroll down when chat list is updated
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                    messageList.scrollToPosition(positionStart);
+            }
+        });
     }
 }

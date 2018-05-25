@@ -5,4 +5,5 @@
     <color name="colorAccent">#777</color>
     <color name="colorChatBubble">#e5601e</color>
     <color name="btnColor">#ffc676</color>
+    <color name="colorComplementary">#85add1</color>
 </resources>

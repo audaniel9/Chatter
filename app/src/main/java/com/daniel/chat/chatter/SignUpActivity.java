@@ -15,12 +15,16 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class SignUpActivity extends AppCompatActivity {
-    private EditText inputEmail,inputPassword;
+    private EditText inputEmail,inputPassword,inputUsername;
     private Button signIn,signUp;
     private ProgressBar progressBar;
     private FirebaseAuth auth;
+    final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +37,7 @@ public class SignUpActivity extends AppCompatActivity {
         signUp = (Button) findViewById(R.id.sign_up_button);
         inputEmail = (EditText) findViewById(R.id.email);
         inputPassword = (EditText) findViewById(R.id.password);
+        inputUsername = (EditText) findViewById(R.id.username_create);
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
         signIn.setOnClickListener(new View.OnClickListener() {
@@ -47,6 +52,12 @@ public class SignUpActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String email = inputEmail.getText().toString().trim();
                 String password = inputPassword.getText().toString().trim();
+                final String username = inputUsername.getText().toString().trim();
+
+                if(TextUtils.isEmpty(username)) {
+                    Toast.makeText(SignUpActivity.this, "Enter a username", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 if(TextUtils.isEmpty(email)) {
                     Toast.makeText(SignUpActivity.this, "Enter an email address.", Toast.LENGTH_SHORT).show();
@@ -69,22 +80,22 @@ public class SignUpActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         progressBar.setVisibility(View.GONE);
 
-                        if(!task.isSuccessful()) {
-                            Toast.makeText(SignUpActivity.this,"Sign up unsuccessful", Toast.LENGTH_SHORT).show();
-                        }
-                        else {
+                        if(task.isSuccessful()) {
+                            FirebaseUser user = auth.getCurrentUser();
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(username).build();
+                            user.updateProfile(profileUpdates);
+
+                            FirebaseDatabase.getInstance().getReference("Users").push().setValue(new Users(user.getDisplayName(),user.getEmail()));
+
                             startActivity(new Intent(SignUpActivity.this,MainActivity.class));
                             finish();
+                        }
+                        else {
+                            Toast.makeText(SignUpActivity.this,"Sign up unsuccessful", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
             }
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        progressBar.setVisibility(View.GONE);
     }
 }
