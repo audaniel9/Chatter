@@ -1,17 +1,20 @@
 package com.daniel.chat.chatter;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,8 +25,10 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class ProfileFragment extends Fragment {
-    private TextView profileFullName, profileUsername, profileEmail;
-    private Button profileDelete;
+    private TextView profileUsername, profileEmail;
+    private EditText profileFullName;
+    private Button profileFullNameEdit, profileDelete;
+    private ImageView profilePic;
     final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     @Override
@@ -33,15 +38,18 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        profileFullName = (TextView) getView().findViewById(R.id.profile_full_name);
+        profileFullName = (EditText) getView().findViewById(R.id.profile_full_name);
         profileUsername = (TextView) getView().findViewById(R.id.profile_username);
         profileEmail = (TextView) getView().findViewById(R.id.profile_email);
+        profilePic = (ImageView) getView().findViewById(R.id.profile_pic);
         profileDelete = (Button) getView().findViewById(R.id.profile_delete);
+        profileFullNameEdit = (Button) getView().findViewById(R.id.profile_full_name_edit);
+
+        profileEditListeners();
 
         profileUsername.setText(user.getDisplayName());
         profileEmail.setText(user.getEmail());
-
-        //FirebaseDatabase.getInstance().getReference().push().setValue
+        profileFullName.setText(profileFullName.getText().toString());
 
         profileDelete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -52,7 +60,6 @@ public class ProfileFragment extends Fragment {
                 alertDelete.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(user != null)
                         user.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
@@ -60,6 +67,7 @@ public class ProfileFragment extends Fragment {
                                     startActivity(new Intent(getActivity(),LoginActivity.class));
                                     getActivity().finish();
                                     Toast.makeText(getActivity(), "Account deleted", Toast.LENGTH_SHORT).show();
+                                    FirebaseDatabase.getInstance().getReference("Users").child(user.getDisplayName()).removeValue();
                                 }
                                 else {
                                     Toast.makeText(getActivity(), "Cannot delete", Toast.LENGTH_SHORT).show();
@@ -75,6 +83,30 @@ public class ProfileFragment extends Fragment {
                     }
                 });
                 alertDelete.show();
+            }
+        });
+    }
+
+    public void profileEditListeners() {
+        profileFullNameEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                profileFullName.setEnabled(true);
+                profileFullName.setFocusableInTouchMode(true);
+                profileFullName.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(profileFullName, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
+
+        profileFullName.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    profileFullName.setEnabled(false);
+                    profileFullName.setFocusableInTouchMode(false);
+                    FirebaseDatabase.getInstance().getReference("Users").child(user.getDisplayName()).setValue(new Users(profileFullName.getText().toString()));
+                }
             }
         });
     }

@@ -37,7 +37,7 @@ import com.google.firebase.database.Query;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private FirebaseAuth auth = FirebaseAuth.getInstance();
     private FirebaseAuth.AuthStateListener authListener;
-    final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     RelativeLayout activity_main;
     FloatingActionButton fabSend;
     RecyclerView messageList;
@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         };
+        auth.addAuthStateListener(authListener);
 
         activity_main = (RelativeLayout) findViewById(R.id.activity_main);
         fabSend = (FloatingActionButton) findViewById(R.id.fabSend);
@@ -214,5 +215,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     messageList.scrollToPosition(positionStart);
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        FirebaseAuth.getInstance().removeAuthStateListener(authListener);
     }
 }

@@ -1,6 +1,7 @@
 package com.daniel.chat.chatter;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,11 +21,12 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class SignUpActivity extends AppCompatActivity {
-    private EditText inputEmail,inputPassword,inputUsername;
+    private EditText inputEmail,inputPassword,inputUsername,profileFullName;
     private Button signIn,signUp;
     private ProgressBar progressBar;
     private FirebaseAuth auth;
-    final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    private FirebaseAuth.AuthStateListener authListener;
+    private FirebaseUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +40,7 @@ public class SignUpActivity extends AppCompatActivity {
         inputEmail = (EditText) findViewById(R.id.email);
         inputPassword = (EditText) findViewById(R.id.password);
         inputUsername = (EditText) findViewById(R.id.username_create);
+        profileFullName = (EditText) findViewById(R.id.profile_full_name);
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
         signIn.setOnClickListener(new View.OnClickListener() {
@@ -78,17 +81,33 @@ public class SignUpActivity extends AppCompatActivity {
                 auth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(SignUpActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        progressBar.setVisibility(View.GONE);
 
                         if(task.isSuccessful()) {
-                            FirebaseUser user = auth.getCurrentUser();
+                            user = FirebaseAuth.getInstance().getCurrentUser();
                             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(username).build();
                             user.updateProfile(profileUpdates);
 
-                            FirebaseDatabase.getInstance().getReference("Users").push().setValue(new Users(user.getDisplayName(),user.getEmail()));
+                            // Delay actions to let user creation complete
+                            final Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    authListener = new FirebaseAuth.AuthStateListener() {
+                                        @Override
+                                        public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                                            if (user != null) {
+                                                FirebaseDatabase.getInstance().getReference("Users").child(user.getDisplayName()).setValue(new Users(user.getDisplayName(), user.getEmail()));
+                                            }
+                                        }
+                                    };
+                                    FirebaseAuth.getInstance().addAuthStateListener(authListener);
+                                    progressBar.setVisibility(View.GONE);
 
-                            startActivity(new Intent(SignUpActivity.this,MainActivity.class));
-                            finish();
+                                    startActivity(new Intent(SignUpActivity.this,MainActivity.class));
+                                    finish();
+                                }
+                                // 0.5s = 500ms
+                            }, 500);
                         }
                         else {
                             Toast.makeText(SignUpActivity.this,"Sign up unsuccessful", Toast.LENGTH_SHORT).show();
@@ -97,5 +116,11 @@ public class SignUpActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        FirebaseAuth.getInstance().removeAuthStateListener(authListener);
     }
 }

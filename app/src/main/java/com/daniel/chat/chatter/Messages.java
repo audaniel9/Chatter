@@ -7,18 +7,22 @@ public class Messages {
     private String message;
     private long time;
 
+    public Messages() {
+    }
+
     public Messages(String message, String user) {
         this.user = user;
         this.message = message;
         time = new Date().getTime();
     }
 
-    public Messages() {
+    public String getUser() {
+        return user;
     }
 
-    public String getUser() { return user; }
-
-    public void setUser(String user) { this.user = user; }
+    public void setUser(String user) {
+        this.user = user;
+    }
 
     public String getMessage() {
         return message;

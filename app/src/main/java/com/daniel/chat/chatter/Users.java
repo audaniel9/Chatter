@@ -1,27 +1,36 @@
 package com.daniel.chat.chatter;
 
 public class Users {
-    private String username;
+    private String fullName;
+    private String user;
     private String email;
-
-    public Users(String username) {
-        this.username = username;
-    }
-
-    public Users(String username, String email) {
-        this.username = username;
-        this.email = email;
-    }
 
     public Users() {
     }
 
-    public String getUsername() {
-        return username;
+    public Users(String fullName) {
+        this.fullName = fullName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public Users(String user, String email) {
+        this.user = user;
+        this.email = email;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 
     public String getEmail() {
