@@ -166,6 +166,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(id == R.id.drawer_profile) {
             fragment = new ProfileFragment();
         }
+        if(id == R.id.drawer_people) {
+            fragment = new PeopleFragment();
+        }
         if (fragment != null) {
             fragmentTransaction.replace(R.id.frame, fragment);
             fragmentTransaction.addToBackStack(null);
@@ -185,10 +188,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Query query = FirebaseDatabase.getInstance().getReference().child("Messages");
 
         FirebaseRecyclerOptions<Messages> options =
-                new FirebaseRecyclerOptions.Builder<Messages>()
-                        .setQuery(query,Messages.class)
-                        .setLifecycleOwner(this)
-                        .build();
+                new FirebaseRecyclerOptions.Builder<Messages>().setQuery(query,Messages.class).setLifecycleOwner(this).build();
 
         adapter = new FirebaseRecyclerAdapter<Messages,MessagesViewHolder>(options) {
             @Override
