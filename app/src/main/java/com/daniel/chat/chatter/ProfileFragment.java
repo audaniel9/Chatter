@@ -9,6 +9,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -22,18 +25,38 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProfileFragment extends Fragment {
     private TextView profileUsername, profileEmail;
     private EditText profileFullName;
     private Button profileFullNameEdit, profileDelete;
     private ImageView profilePic;
+    private MenuItem menuRefresh, menuSearch;
+    private FirebaseAuth.AuthStateListener authListener;
     final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    private Map<String, Object> updateValues = new HashMap<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         return inflater.inflate(R.layout.fragment_profile, container, false);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menuRefresh = menu.findItem(R.id.menuRefresh);
+        menuSearch = menu.findItem(R.id.menuSearch);
+
+        menuRefresh.setVisible(false);
+        menuSearch.setVisible(false);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -64,10 +87,15 @@ public class ProfileFragment extends Fragment {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if(task.isSuccessful()) {
-                                    startActivity(new Intent(getActivity(),LoginActivity.class));
-                                    getActivity().finish();
-                                    Toast.makeText(getActivity(), "Account deleted", Toast.LENGTH_SHORT).show();
-                                    FirebaseDatabase.getInstance().getReference("Users").child(user.getDisplayName()).removeValue();
+                                    authListener = new FirebaseAuth.AuthStateListener() {
+                                        @Override
+                                        public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                                            startActivity(new Intent(getActivity(), LoginActivity.class));
+                                            getActivity().finish();
+                                            Toast.makeText(getActivity(), "Account deleted", Toast.LENGTH_SHORT).show();
+                                            FirebaseDatabase.getInstance().getReference("Users").child(user.getDisplayName()).removeValue();
+                                        }
+                                    };
                                 }
                                 else {
                                     Toast.makeText(getActivity(), "Cannot delete", Toast.LENGTH_SHORT).show();
@@ -105,7 +133,23 @@ public class ProfileFragment extends Fragment {
                 if (!hasFocus) {
                     profileFullName.setEnabled(false);
                     profileFullName.setFocusableInTouchMode(false);
-                    FirebaseDatabase.getInstance().getReference("Users").child(user.getDisplayName()).setValue(new Users(profileFullName.getText().toString()));
+                    FirebaseDatabase.getInstance().getReference("Users").orderByChild("fullName").equalTo(user.getDisplayName()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()){
+                                for (DataSnapshot childSnapshot: dataSnapshot.getChildren()) {
+                                    updateValues.put(childSnapshot.getKey()+"/fullName", profileFullName.toString());
+                                }
+
+                                FirebaseDatabase.getInstance().getReference("Users").updateChildren(updateValues);
+                            }
+                        }
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                        }
+                    });
+
+                    //FirebaseDatabase.getInstance().getReference("Users").child(user.getDisplayName()).child("fullName").setValue(new Users(profileFullName.getText().toString()));
                 }
             }
         });

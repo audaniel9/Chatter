@@ -81,7 +81,6 @@ public class SignUpActivity extends AppCompatActivity {
                 auth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(SignUpActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-
                         if(task.isSuccessful()) {
                             user = FirebaseAuth.getInstance().getCurrentUser();
                             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(username).build();
@@ -119,8 +118,8 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         FirebaseAuth.getInstance().removeAuthStateListener(authListener);
     }
 }
